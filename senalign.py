@@ -40,18 +40,26 @@ def input_file(args):
         elif arg[0] == 'maxpair':
             maxpair = arg[1]
     try:
-        with codecs.open(inputfile_1,mode='r',encoding="utf-16") as file_in:
+        with codecs.open(inputfile_1,mode='r',encoding="utf-8") as file_in:
             string_1 = file_in.read()
     except Exception:
-        print('File not found: ', inputfile_1)
-        sys.exit()
+        try:
+            with codecs.open(inputfile_1,mode='r',encoding="utf-16") as file_in:
+                string_1 = file_in.read()
+        except Exception:
+            print('File not found: ', inputfile_1)
+            sys.exit()
 
     try:
-        with codecs.open(inputfile_2,mode='r',encoding="utf-16") as file_in:
+        with codecs.open(inputfile_2,mode='r',encoding="utf-8") as file_in:
             string_2 = file_in.read()
     except Exception:
-        print('File not found: ', inputfile_2)
-        sys.exit()
+        try:
+            with codecs.open(inputfile_2,mode='r',encoding="utf-16") as file_in:
+                string_2 = file_in.read()
+        except Exception:
+            print('File not found: ', inputfile_2)
+            sys.exit()
 
     return lang_1, lang_2, string_1, string_2, outputfile, threshold, maxpair
 
@@ -59,12 +67,35 @@ def input_file(args):
 def out_to_file(lang_1, lang_2, outputfile, sentence_pairs):
     # print((sentence_pairs))
     f = open(outputfile, 'w+')
-
+    temp=''
+    last=''
+    count=0
     for i in range(len(sentence_pairs)):
         pair = sentence_pairs[i]
         # print(pair)
+        if temp=='':
+            temp=pair[1]
+            last=pair[2]
+            count=count+1
+        else:
+            if pair[2]==last:
+                count=count+1
+                temp=temp+' '+pair[1]
+            elif count>1:
+                f.write(last+"\t"+temp+"\n")
+                temp=pair[1]
+                last=pair[2]
+                count=1
+            else:
+                temp=pair[1]
+                last=pair[2]
+                count=1
         f.write(str(pair[0]) + "\t" + pair[2] + "\t" + pair[1] + "\n")
-
+    if count>1:
+        f.write(last+"\t"+temp+"\n")
+        temp=''
+        last=''
+        count=0
     f.close()
 
 

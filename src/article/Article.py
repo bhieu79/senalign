@@ -46,13 +46,28 @@ class Article:
     #         raise ValueError
     #     self.contents = self.contents.replace('\n', ' ')
     def __split(self):
-
+        # self.text=self.text.replace('«','"')
+        self.text=self.text.replace('\u200b','')
+        self.text=self.text.replace('\xa0',' ')
         partss = self.text.split("\n")
         if self.langid=='km':
             nlp = English()
             config = {"punct_chars": [ '។', '៕', '?', '!','៚','\n']}
             # sbd = nlp.create_pipe("sentencizer",config=config)
             sentencizer = nlp.add_pipe('sentencizer',config=config)
+            @Language.component('custom_km')
+            def set_custom_boundaries(doc):
+                for token in doc[:-1]:
+                # print(token)
+                    if token.text == '។':
+                        if token.i+1<len(doc) and doc[token.i+1].text== 'ល':
+                            if token.i+2<len(doc) and doc[token.i+2].text == '។':
+                                doc[token.i+1].is_sent_start = False
+                                doc[token.i+2].is_sent_start = False
+                        elif token.i+1<len(doc) and doc[token.i+1].text== '។':
+                            doc[token.i+1].is_sent_start = False
+                return doc
+            nlp.add_pipe('custom_km',after="sentencizer")
             for x in range(0,len(partss),1):
                 # print(partss[x])
                 text=" ".join(partss[x])
@@ -69,7 +84,7 @@ class Article:
                                 text2[i]=""
                     text1=''.join(text2)
                     # print(text1)
-                    self.sentences.append(text1)
+                    self.sentences.append(text1.strip())
                     # print(self.sentences)
             while '' in self.sentences:
                 self.sentences.remove('')
@@ -79,12 +94,24 @@ class Article:
                 self.sentences.remove('\n')
             while '\r\n' in self.sentences:
                 self.sentences.remove('\r\n')
+            while "។" in self.sentences:
+                self.sentences.remove("។")
+            while "៕" in self.sentences:
+                self.sentences.remove("៕")
+            while "?" in self.sentences:
+                self.sentences.remove("?")
+            while "!" in self.sentences:
+                self.sentences.remove("!")
+            while "៚" in self.sentences:
+                self.sentences.remove("៚")   
         elif self.langid=='vi':
             nlp1 = English()
             nlp1.add_pipe('sentencizer')
             @Language.component('custom_vi')
             def set_custom_boundaries(doc):
                 for token in doc[:-1]:
+                    if token.text == "....":
+                        doc[token.i+1].is_sent_start = True
                     if token.text == "…" or token.text == "...":
                         if doc[token.i + 1].text[0].isupper():
                             doc[token.i + 1].is_sent_start = True
@@ -101,7 +128,7 @@ class Article:
             for x in range(0,len(partss),1):
                 doc = nlp1(partss[x])
                 for sent in doc.sents:
-                    self.sentences.append(sent.text)
+                    self.sentences.append(sent.text.strip())
             while '' in self.sentences:
                 self.sentences.remove('')
             while '\r' in self.sentences:
@@ -110,6 +137,14 @@ class Article:
                 self.sentences.remove('\n')
             while '\r\n' in self.sentences:
                 self.sentences.remove('\r\n')
+            while ' ' in self.sentences:
+                self.sentences.remove(' ')
+            while '.' in self.sentences:
+                self.sentences.remove('.')
+            while '!' in self.sentences:
+                self.sentences.remove('!')
+            while '?' in self.sentences:
+                self.sentences.remove('?')    
         else:
             for x in range(0,len(partss),1):
                 # print(partss[x])
