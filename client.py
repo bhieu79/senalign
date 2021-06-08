@@ -215,7 +215,13 @@ class Translator:
         parsed = json.loads(data[0][2])
         # not sure
         should_spacing = parsed[1][0][0][3]
-        translated_parts = list(map(lambda part: part[0] if len(part) >= 2 else [], parsed[1][0][0][5]))
-        translated = (' ' if should_spacing else '').join(map(lambda part: part, translated_parts))
+        # translated_parts = list(map(lambda part: part[0] if len(part) >= 2 else [], parsed[1][0][0][5]))
+        # translated = (' ' if should_spacing else '').join(map(lambda part: part, translated_parts))
+        # print('translated .... ', translated)
 
+        # return translated
+        translated_parts = list(map( lambda part: part[0], parsed[1][0][0][5]) )
+
+
+        translated = (' ' if should_spacing else '').join(map(lambda part: part, translated_parts))
         return translated
