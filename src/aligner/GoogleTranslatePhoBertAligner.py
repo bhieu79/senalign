@@ -5,7 +5,7 @@ from src.aligner.Aligner import Aligner
 from src.article.Article import Article
 from src.article.embeddable.EmbeddableArticleFactory import EmbeddableArticleFactory
 from src.article.ArticleFactory import VIETNAMESE_LANGID
-from src.browser.Chrome import Chrome
+# from src.browser.Chrome import Chrome
 from src.embeder.PhoBert import PhoBert
 from src.translator.GoogleTranslate import GoogleTranslate
 
@@ -18,8 +18,8 @@ class GoogleTranslatePhoBertAligner(Aligner):
         self.__device = device
         self._embedder = PhoBert(self.__device)
 
-        self.__browser = Chrome()
-        self.__translator = GoogleTranslate(self.__browser)
+        # self.__browser = Chrome()
+        self.__translator = GoogleTranslate()
         self.__translator.set_target_langid(VIETNAMESE_LANGID)
         self.__article_factory = EmbeddableArticleFactory()
 
@@ -38,8 +38,12 @@ class GoogleTranslatePhoBertAligner(Aligner):
     def __translate_article(self, article: Article):
         translated_sentences = []
         for sentence in article.sentences:
-            translated_sentences.append(self.__translator.translate(sentence))
-        # print(translated_sentences)
+
+            temp=self.__translator.translate(sentence)
+            if temp!='':
+                translated_sentences.append(temp)
+            else:
+                article.sentences.remove(sentence)
         return self.__article_factory.from_sentences(translated_sentences, self.__translator.target_langid)
 
     def align(self):
@@ -69,5 +73,5 @@ class GoogleTranslatePhoBertAligner(Aligner):
     def _process_alignment(self, article1: Article, article2: Article, translation1: EmbeddableArticle, translation2: EmbeddableArticle):
         pass
 
-    def stop(self):
-        self.__browser.close()
+    # def stop(self):
+    #     # self.__browser.close()
